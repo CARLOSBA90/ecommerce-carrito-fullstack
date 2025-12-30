@@ -1,0 +1,26 @@
+<nav class="navbar">
+  <div class="navbar__brand">Ecommerce</div>
+  <ul class="navbar__links navbar__pill">
+    <li>
+      <ng-container *ngIf="isLoggedIn; else loginLink">
+        <button class="navbar__ghost" type="button" (click)="openAccount()">
+          <span class="navbar__user-dot"></span>
+          <span>{{ userName }}</span>
+        </button>
+      </ng-container>
+      <ng-template #loginLink>
+        <button class="navbar__ghost" type="button" (click)="openLogin()">Iniciar sesión</button>
+      </ng-template>
+    </li>
+    <li>
+      <button class="navbar__cta" type="button" (click)="openCart()">
+        <svg class="navbar__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 5h2l1.2 9h11.6l1.2-6H6.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="9" cy="18" r="1.2" fill="currentColor"/>
+          <circle cx="17" cy="18" r="1.2" fill="currentColor"/>
+        </svg>
+        <span>Carrito</span>
+      </button>
+    </li>
+  </ul>
+</nav>

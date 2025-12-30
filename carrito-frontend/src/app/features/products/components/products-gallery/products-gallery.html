@@ -1,0 +1,24 @@
+<section class="gallery">
+  <div class="gallery__grid">
+    @for (product of products; track product.id) {
+      <article class="product-card">
+        <div class="product-card__image">
+          <img [src]="product.image" [alt]="product.name" />
+        </div>
+        <div class="product-card__content">
+          <h3 class="product-card__name">{{ product.name }}</h3>
+          <p class="product-card__description">{{ product.description }}</p>
+          <div class="product-card__footer">
+            <span class="product-card__price">${{ product.price }}</span>
+            <button
+              class="product-card__btn"
+              (click)="addToCart(product)"
+              [disabled]="product.stock === 0">
+              {{ product.stock > 0 ? 'Agregar' : 'Sin stock' }}
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</section>
