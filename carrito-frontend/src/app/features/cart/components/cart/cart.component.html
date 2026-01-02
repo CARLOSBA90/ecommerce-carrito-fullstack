@@ -1,0 +1,52 @@
+<ng-container *ngIf="isOpen$ | async">
+    <div class="cart-backdrop" (click)="closeCart()"></div>
+    <aside class="cart-sidebar">
+        <header class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="cart-close" (click)="closeCart()" aria-label="Cerrar carrito">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+        </header>
+
+        <div class="cart-body">
+            <div *ngIf="(items$ | async)?.length === 0" class="cart-empty">
+                <p>Tu carrito está vacío.</p>
+                <button class="btn-continue" (click)="closeCart()">Volver a comprar</button>
+            </div>
+
+            <ul class="cart-items">
+                <li *ngFor="let item of items$ | async" class="cart-item">
+                    <div class="cart-item__image">
+                        <img [src]="item.image" [alt]="item.name" />
+                    </div>
+                    <div class="cart-item__details">
+                        <h3 class="cart-item__name">{{ item.name }}</h3>
+                        <p class="cart-item__price">{{ item.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                        <div class="cart-item__controls">
+                            <button (click)="updateQuantity(item.productId, item.quantity - 1)"
+                                [disabled]="item.quantity <= 1">-</button>
+                            <span>{{ item.quantity }}</span>
+                            <button (click)="updateQuantity(item.productId, item.quantity + 1)">+</button>
+                        </div>
+                    </div>
+                    <button class="cart-item__remove" (click)="removeItem(item.productId)"
+                        aria-label="Eliminar producto">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        </svg>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <footer class="cart-footer" *ngIf="(items$ | async)?.length ?? 0 > 0">
+            <div class="cart-total">
+                <span>Total</span>
+                <span class="cart-total__amount">{{ total$ | async | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <button class="btn-checkout" (click)="checkout()">Finalizar Compra</button>
+        </footer>
+    </aside>
+</ng-container>

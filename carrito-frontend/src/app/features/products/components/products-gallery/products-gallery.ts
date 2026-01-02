@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Products, Product } from '../../../products/services/products';
+import { Products, Product } from '../../../products/services/products.service';
+import { CartService } from '../../../cart/services/cart.service';
+import { CartProduct } from '../../../cart/interfaces/cart-product.interface';
 
 @Component({
   selector: 'app-products-gallery',
@@ -12,7 +14,10 @@ import { Products, Product } from '../../../products/services/products';
 export class ProductsGallery implements OnInit {
   products: Product[] = [];
 
-  constructor(private productsService: Products) {}
+  constructor(
+    private productsService: Products,
+    private cartService: CartService
+  ) { }
 
   ngOnInit(): void {
     this.productsService.getProducts().subscribe(data => {
@@ -21,7 +26,12 @@ export class ProductsGallery implements OnInit {
   }
 
   addToCart(product: Product): void {
-    console.log('Producto agregado al carrito:', product);
-    // TODO: Implementar lógica del carrito
+    const cartProduct: Omit<CartProduct, 'quantity'> = {
+      productId: product.id.toString(),
+      name: product.name,
+      price: product.price,
+      image: product.image
+    };
+    this.cartService.addToCart(cartProduct);
   }
 }
