@@ -1,0 +1,41 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://ecommerce.com/soap/backoffice"
+    xmlns:tns="http://ecommerce.com/soap/backoffice"
+    elementFormDefault="qualified">
+
+    <xs:simpleType name="ReportType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CURRENT_VIP" />
+            <xs:enumeration value="NEW_VIP" />
+            <xs:enumeration value="LOST_VIP" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="getCustomerReportRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="reportType" type="tns:ReportType" />
+                <xs:element name="month" type="xs:int" />
+                <xs:element name="year" type="xs:int" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="getCustomerReportResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="customers" type="tns:CustomerInfo" minOccurs="0"
+                    maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="CustomerInfo">
+        <xs:sequence>
+            <xs:element name="id" type="xs:long" />
+            <xs:element name="fullName" type="xs:string" />
+            <xs:element name="status" type="xs:string" />
+            <xs:element name="dateOfChange" type="xs:string" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
