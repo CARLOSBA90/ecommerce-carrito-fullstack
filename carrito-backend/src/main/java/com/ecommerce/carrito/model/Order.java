@@ -43,4 +43,9 @@ public class Order {
 
     @CreationTimestamp
     private LocalDateTime generatedAt;
+
+    @ManyToMany
+    @JoinTable(name = "order_discounts", joinColumns = @JoinColumn(name = "order_id"), inverseJoinColumns = @JoinColumn(name = "discount_id"))
+    @Builder.Default
+    private List<Discount> appliedDiscounts = new java.util.ArrayList<>();
 }

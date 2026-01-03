@@ -13,7 +13,7 @@ export interface Product {
 @Injectable({
   providedIn: 'root',
 })
-export class Products {
+export class ProductsService {
   private mockProducts: Product[] = [
     {
       id: 1,

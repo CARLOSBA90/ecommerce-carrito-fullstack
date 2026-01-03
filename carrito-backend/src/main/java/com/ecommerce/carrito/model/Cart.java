@@ -42,4 +42,18 @@ public class Cart {
         items.remove(item);
         item.setCart(null);
     }
+
+    // Métodos de utilidad para descuentos
+    public int getTotalProductCount() {
+        return items.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+    }
+
+    public java.math.BigDecimal getSubtotal() {
+        return items.stream()
+                .map(item -> item.getProduct().getPrice()
+                        .multiply(java.math.BigDecimal.valueOf(item.getQuantity())))
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
 }

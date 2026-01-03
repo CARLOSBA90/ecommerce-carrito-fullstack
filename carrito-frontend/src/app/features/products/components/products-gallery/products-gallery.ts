@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Products, Product } from '../../../products/services/products.service';
+import { ProductsService, Product } from '../../../products/services/products.service';
 import { CartService } from '../../../cart/services/cart.service';
 import { CartProduct } from '../../../cart/interfaces/cart-product.interface';
 
@@ -15,7 +15,7 @@ export class ProductsGallery implements OnInit {
   products: Product[] = [];
 
   constructor(
-    private productsService: Products,
+    private productsService: ProductsService,
     private cartService: CartService
   ) { }
 

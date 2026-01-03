@@ -18,10 +18,19 @@ public class Product {
     private Long id;
 
     @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
     private String description;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     private String category;
+
+    private String imageLink;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer stock = 0;
 }
