@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductsService, Product } from '../../../products/services/products.service';
 import { CartService } from '../../../cart/services/cart.service';
-import { CartProduct } from '../../../cart/interfaces/cart-product.interface';
 
 @Component({
   selector: 'app-products-gallery',
@@ -13,6 +12,8 @@ import { CartProduct } from '../../../cart/interfaces/cart-product.interface';
 })
 export class ProductsGallery implements OnInit {
   products: Product[] = [];
+  loading: boolean = true;
+  error: string = '';
 
   constructor(
     private productsService: ProductsService,
@@ -20,18 +21,20 @@ export class ProductsGallery implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.productsService.getProducts().subscribe(data => {
-      this.products = data;
+    this.productsService.getProducts().subscribe({
+      next: (data) => {
+        this.products = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading products:', err);
+        this.error = 'No se pudieron cargar los productos. Por favor, intenta de nuevo más tarde.';
+        this.loading = false;
+      }
     });
   }
 
   addToCart(product: Product): void {
-    const cartProduct: Omit<CartProduct, 'quantity'> = {
-      productId: product.id.toString(),
-      name: product.name,
-      price: product.price,
-      image: product.image
-    };
-    this.cartService.addToCart(cartProduct);
+    this.cartService.addToCart(product);
   }
 }

@@ -33,15 +33,15 @@ export class CartComponent implements OnInit {
         this.cartService.closeCart();
     }
 
-    updateQuantity(id: string, newQuantity: number): void {
-        this.cartService.updateQuantity(id, newQuantity);
+    updateQuantity(productId: number, newQuantity: number): void {
+        this.cartService.updateQuantity(productId, newQuantity);
     }
 
-    removeItem(id: string): void {
-        this.cartService.removeFromCart(id);
+    removeItem(productId: number): void {
+        this.cartService.removeFromCart(productId);
     }
 
     checkout(): void {
-        console.log('Proceed to checkout');
+        this.cartService.confirmCart();
     }
 }

@@ -39,7 +39,7 @@ public class Discount {
     private String cartTypeApplies;
 
     // Condición: "EXACT_QTY_4", "MIN_QTY_10", "ALWAYS"
-    @Column(length = 30)
+    @Column(name = "`condition`", length = 30)
     private String condition;
 
     // Activo

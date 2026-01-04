@@ -19,19 +19,19 @@
             <ul class="cart-items">
                 <li *ngFor="let item of items$ | async" class="cart-item">
                     <div class="cart-item__image">
-                        <img [src]="item.image" [alt]="item.name" />
+                        <img [src]="item.product.imageLink" [alt]="item.product.name" />
                     </div>
                     <div class="cart-item__details">
-                        <h3 class="cart-item__name">{{ item.name }}</h3>
-                        <p class="cart-item__price">{{ item.price | currency:'USD':'symbol':'1.0-0' }}</p>
+                        <h3 class="cart-item__name">{{ item.product.name }}</h3>
+                        <p class="cart-item__price">{{ item.product.price | currency:'USD':'symbol':'1.0-0' }}</p>
                         <div class="cart-item__controls">
-                            <button (click)="updateQuantity(item.productId, item.quantity - 1)"
+                            <button (click)="updateQuantity(item.product.id, item.quantity - 1)"
                                 [disabled]="item.quantity <= 1">-</button>
                             <span>{{ item.quantity }}</span>
-                            <button (click)="updateQuantity(item.productId, item.quantity + 1)">+</button>
+                            <button (click)="updateQuantity(item.product.id, item.quantity + 1)">+</button>
                         </div>
                     </div>
-                    <button class="cart-item__remove" (click)="removeItem(item.productId)"
+                    <button class="cart-item__remove" (click)="removeItem(item.product.id)"
                         aria-label="Eliminar producto">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />

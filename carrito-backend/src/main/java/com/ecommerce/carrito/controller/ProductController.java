@@ -1,8 +1,9 @@
 package com.ecommerce.carrito.controller;
 
-import com.ecommerce.carrito.model.Product;
-import com.ecommerce.carrito.service.ProductService;
+import com.ecommerce.carrito.dto.ProductResponseDto;
+import com.ecommerce.carrito.service.IProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,15 +14,15 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ProductController {
 
-    private final ProductService productService;
+    private final IProductService productService;
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductResponseDto>> getAllProducts() {
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
-        return productService.getProductById(id).orElse(null);
+    public ResponseEntity<ProductResponseDto> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 }

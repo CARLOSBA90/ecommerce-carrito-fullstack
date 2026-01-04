@@ -1,24 +1,52 @@
 <section class="gallery">
-  <div class="gallery__grid">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="empty-state">
+    <div class="loading-spinner"></div>
+    <h2>Cargando productos...</h2>
+    <p>Por favor espera un momento</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && error" class="empty-state error-state">
+    <svg class="empty-icon error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <h2>¡Oops! Algo salió mal</h2>
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="ngOnInit()">Reintentar</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && products.length === 0" class="empty-state">
+    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="9" cy="21" r="1"></circle>
+      <circle cx="20" cy="21" r="1"></circle>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    </svg>
+    <h2>No hay productos disponibles</h2>
+    <p>Vuelve más tarde para ver nuestros productos</p>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="gallery__grid" *ngIf="!loading && !error && products.length > 0">
     @for (product of products; track product.id) {
-      <article class="product-card">
-        <div class="product-card__image">
-          <img [src]="product.image" [alt]="product.name" />
+    <article class="product-card">
+      <div class="product-card__image">
+        <img [src]="product.imageLink" [alt]="product.name" />
+      </div>
+      <div class="product-card__content">
+        <h3 class="product-card__name">{{ product.name }}</h3>
+        <p class="product-card__description">{{ product.description }}</p>
+        <div class="product-card__footer">
+          <span class="product-card__price">${{ product.price }}</span>
+          <button class="product-card__btn" (click)="addToCart(product)" [disabled]="product.stock === 0">
+            {{ product.stock > 0 ? 'Agregar' : 'Sin stock' }}
+          </button>
         </div>
-        <div class="product-card__content">
-          <h3 class="product-card__name">{{ product.name }}</h3>
-          <p class="product-card__description">{{ product.description }}</p>
-          <div class="product-card__footer">
-            <span class="product-card__price">${{ product.price }}</span>
-            <button
-              class="product-card__btn"
-              (click)="addToCart(product)"
-              [disabled]="product.stock === 0">
-              {{ product.stock > 0 ? 'Agregar' : 'Sin stock' }}
-            </button>
-          </div>
-        </div>
-      </article>
+      </div>
+    </article>
     }
   </div>
 </section>

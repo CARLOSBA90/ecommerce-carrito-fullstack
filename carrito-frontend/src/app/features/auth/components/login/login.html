@@ -1,1 +1,45 @@
-<p>login works!</p>
+<div *ngIf="isOpen" class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-content">
+        <button class="modal-close" (click)="closeModal()" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="modal-header">
+            <h2>Iniciar Sesión</h2>
+            <p>Ingresa tus credenciales para continuar</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" formControlName="username" placeholder="Ingresa tu usuario"
+                    [class.error]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" />
+                <span class="error-message"
+                    *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+                    El usuario es requerido
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" formControlName="password" placeholder="Ingresa tu contraseña"
+                    [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" />
+                <span class="error-message"
+                    *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                    La contraseña es requerida
+                </span>
+            </div>
+
+            <div *ngIf="errorMessage" class="alert-error">
+                {{ errorMessage }}
+            </div>
+
+            <button type="submit" class="btn-submit" [disabled]="isLoading || loginForm.invalid">
+                <span *ngIf="!isLoading">Iniciar Sesión</span>
+                <span *ngIf="isLoading">Cargando...</span>
+            </button>
+        </form>
+    </div>
+</div>

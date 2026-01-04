@@ -23,7 +23,7 @@ public class Customer {
     @Enumerated(EnumType.STRING)
     private CustomerTier tier;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 

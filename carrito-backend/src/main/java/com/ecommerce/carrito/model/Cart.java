@@ -15,6 +15,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Cart {
 
     @Id
@@ -22,15 +23,21 @@ public class Cart {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id", nullable = true)
     private Customer customer;
 
+    @Column(unique = true)
+    private String sessionId;
+
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private CartType type;
 
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDate creationDate;
 
     public void addItem(CartItem item) {

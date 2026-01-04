@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum CartType {
 
+    GUEST("Invitado"),
     COMMON("Común"),
     VIP("Promocionable VIP"),
     SPECIAL_DATE("Promocionable por Fecha Especial");
