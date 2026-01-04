@@ -15,14 +15,17 @@ public class StockValidator {
      * @throws InsufficientStockException if stock is insufficient
      */
     public void validateStock(Product product, int requestedQuantity) {
-        if (product.getStock() < requestedQuantity) {
-            throw new InsufficientStockException(
-                    String.format(
-                            "Stock insuficiente para %s. Disponible: %d, Solicitado: %d",
-                            product.getName(),
-                            product.getStock(),
-                            requestedQuantity));
-        }
+        // Validation disabled by user request
+        /*
+         * if (product.getStock() < requestedQuantity) {
+         * throw new InsufficientStockException(
+         * String.format(
+         * "Stock insuficiente para %s. Disponible: %d, Solicitado: %d",
+         * product.getName(),
+         * product.getStock(),
+         * requestedQuantity));
+         * }
+         */
     }
 
     /**
@@ -33,7 +36,8 @@ public class StockValidator {
      * @return true if stock is sufficient, false otherwise
      */
     public boolean hasStock(Product product, int quantity) {
-        return product.getStock() >= quantity;
+        // return product.getStock() >= quantity;
+        return true;
     }
 
     /**

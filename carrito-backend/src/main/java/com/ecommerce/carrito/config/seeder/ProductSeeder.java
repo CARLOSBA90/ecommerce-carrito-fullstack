@@ -90,7 +90,7 @@ public class ProductSeeder implements EntitySeeder {
                                 .name("Router WiFi 6")
                                 .description("Cobertura hasta 200m²")
                                 .price(new BigDecimal("199.99"))
-                                .imageLink("https://images.unsplash.com/photo-1606904825846-647eb07f5820?w=400&h=300&fit=crop")
+                                .imageLink("https://images.unsplash.com/photo-1621685634155-dcb444e2ec98?w=400&h=300&fit=crop")
                                 .stock(18)
                                 .category("Redes")
                                 .build());

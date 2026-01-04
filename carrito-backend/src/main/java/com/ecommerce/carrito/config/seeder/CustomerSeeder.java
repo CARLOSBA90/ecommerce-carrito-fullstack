@@ -13,9 +13,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class CustomerSeeder implements EntitySeeder {
 
     private final CustomerRepository customerRepository;

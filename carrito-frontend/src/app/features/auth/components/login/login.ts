@@ -25,8 +25,8 @@ export class Login implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required]]
+      username: [''],
+      password: ['']
     });
 
     this.loginModalService.isOpen$.subscribe(isOpen => {

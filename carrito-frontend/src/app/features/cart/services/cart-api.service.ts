@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Cart } from '../interfaces/cart.interface';
+import { OrderResponse } from '../interfaces/order-response.interface';
 
 export interface AddItemToCartRequest {
     sessionId?: string;
@@ -29,7 +30,8 @@ export class CartApiService {
     }
 
     getCartByCustomer(customerId: number): Observable<Cart> {
-        return this.http.get<Cart>(`${this.apiUrl}/customer/${customerId}`);
+        // ID is now ignored in favor of the token's identity
+        return this.http.get<Cart>(`${this.apiUrl}/me`);
     }
 
     addItemToCart(request: AddItemToCartRequest): Observable<Cart> {
@@ -44,8 +46,12 @@ export class CartApiService {
         return this.http.put<Cart>(`${this.apiUrl}/${sessionId}/items/${productId}/quantity/${quantity}`, {});
     }
 
-    confirmCart(): Observable<string> {
-        return this.http.post(`${this.apiUrl}/confirm`, {}, { responseType: 'text' });
+    clearCart(sessionId: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}`, { params: { sessionId } });
+    }
+
+    confirmCart(): Observable<OrderResponse> {
+        return this.http.post<OrderResponse>(`${this.apiUrl}/confirm`, {});
     }
 
     assignCartToUser(request: AssignCartToUserRequest): Observable<Cart> {

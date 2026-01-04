@@ -12,6 +12,11 @@ export class UuidService {
 
     constructor(private http: HttpClient) { }
 
+    getSessionId(): Observable<string | null> {
+        const existingSessionId = sessionStorage.getItem(this.SESSION_ID_KEY);
+        return of(existingSessionId);
+    }
+
     getOrCreateSessionId(): Observable<string> {
         const existingSessionId = sessionStorage.getItem(this.SESSION_ID_KEY);
 

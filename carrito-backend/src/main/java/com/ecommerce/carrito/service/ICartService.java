@@ -14,7 +14,9 @@ public interface ICartService {
 
     CartResponseDto assignCartToUser(AssignCartToUserRequestDto request);
 
-    CartResponseDto removeItemFromCart(String sessionId, Long productId);
+    CartResponseDto removeItemFromCart(String sessionId, Long customerId, Long productId);
 
-    CartResponseDto updateItemQuantity(String sessionId, Long productId, Integer quantity);
+    CartResponseDto updateItemQuantity(String sessionId, Long customerId, Long productId, Integer quantity);
+
+    void clearCart(String sessionId, Long customerId);
 }

@@ -17,7 +17,7 @@
             </div>
 
             <ul class="cart-items">
-                <li *ngFor="let item of items$ | async" class="cart-item">
+                <li *ngFor="let item of items$ | async; trackBy: trackByProductId" class="cart-item">
                     <div class="cart-item__image">
                         <img [src]="item.product.imageLink" [alt]="item.product.name" />
                     </div>
@@ -42,11 +42,23 @@
         </div>
 
         <footer class="cart-footer" *ngIf="(items$ | async)?.length ?? 0 > 0">
+            <div class="cart-summary-line" *ngIf="(totalDiscounts$ | async) as discount">
+                <ng-container *ngIf="discount > 0">
+                    <span>Descuentos</span>
+                    <span class="text-green">-{{ discount | currency:'USD':'symbol':'1.0-0' }}</span>
+                </ng-container>
+            </div>
             <div class="cart-total">
                 <span>Total</span>
                 <span class="cart-total__amount">{{ total$ | async | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-            <button class="btn-checkout" (click)="checkout()">Finalizar Compra</button>
+            <div class="cart-actions">
+                <button class="btn-clear" (click)="clearCart()">Vaciar Carrito</button>
+                <button class="btn-checkout" (click)="checkout()">Finalizar Compra</button>
+            </div>
         </footer>
     </aside>
 </ng-container>
+
+<app-order-summary-modal [isOpen]="showOrderSummary" [order]="confirmedOrder" (close)="closeOrderSummary()">
+</app-order-summary-modal>

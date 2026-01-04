@@ -259,3 +259,39 @@
         max-width: 100%;
     }
 }
+
+.cart-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-clear {
+    background: transparent;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    flex: 1;
+    transition: all 0.2s;
+}
+
+.btn-clear:hover {
+    background: #fff0f0;
+}
+
+.text-green {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+.cart-summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: #666;
+}

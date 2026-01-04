@@ -26,3 +26,7 @@
     </li>
   </ul>
 </nav>
+
+<app-confirmation-modal [isOpen]="showLogoutModal" title="Cerrar Sesión" message="¿Deseas cerrar tu sesión actual?"
+  (confirm)="onLogoutConfirm()" (cancel)="onLogoutCancel()">
+</app-confirmation-modal>

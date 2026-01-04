@@ -31,9 +31,20 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
     }
 
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentialsException(
+            org.springframework.security.authentication.BadCredentialsException ex, WebRequest request) {
+        return buildErrorResponse("Credenciales inválidas", HttpStatus.UNAUTHORIZED, request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(
             Exception ex, WebRequest request) {
+        // Log the full exception for debugging
+        ex.printStackTrace();
+        System.err.println("Error no manejado: " + ex.getClass().getName());
+        System.err.println("Mensaje: " + ex.getMessage());
+
         return buildErrorResponse(
                 "Ha ocurrido un error interno en el servidor",
                 HttpStatus.INTERNAL_SERVER_ERROR,

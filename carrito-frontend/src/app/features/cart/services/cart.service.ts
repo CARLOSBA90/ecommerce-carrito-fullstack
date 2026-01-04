@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, catchError, tap, switchMap, forkJoin } from 'rxjs';
+import { BehaviorSubject, Observable, of, catchError, tap, switchMap, forkJoin, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Cart } from '../interfaces/cart.interface';
+import { OrderResponse } from '../interfaces/order-response.interface';
 import { ToastService } from '../../../shared/services/toast.service';
 import { CartApiService } from './cart-api.service';
 import { UuidService } from '../../../shared/services/uuid.service';
@@ -44,23 +45,55 @@ export class CartService {
   }
 
   toggleCart(): void {
-    // Load cart when opening if not already loaded and user has items
-    if (!this._isOpen.value && !this._cart.value) {
+    // Always load cart when opening to ensure fresh data
+    if (!this._isOpen.value) {
       this.loadCart();
     }
     this._isOpen.next(!this._isOpen.value);
   }
 
   openCart(): void {
-    // Load cart when opening if not already loaded
-    if (!this._cart.value) {
-      this.loadCart();
-    }
+    // Always load cart when opening
+    this.loadCart();
     this._isOpen.next(true);
   }
 
   closeCart(): void {
     this._isOpen.next(false);
+  }
+
+  init(): void {
+    // Subscribe to auth state changes
+    this.authService.currentUser$.pipe(
+      switchMap(user => {
+        if (user) {
+          // USER LOGGED IN
+          // Check if there is a local session to merge
+          return this.uuidService.getSessionId().pipe(
+            switchMap(sessionId => {
+              if (sessionId) {
+                console.log('Found local session, attempting merge:', sessionId);
+                return this.assignSessionCartToCustomer().pipe(
+                  catchError(err => {
+                    console.warn('Merge failed (probably empty session), ignoring:', err);
+                    return of(null);
+                  })
+                );
+              }
+              return of(null);
+            }),
+            tap(() => this.loadCart())
+          );
+        } else {
+          // USER LOGGED OUT
+          console.log('User logged out, clearing session.');
+          this.uuidService.clearSessionId();
+          this.resetLocalCart();
+          this.loadCart(); // Will load empty/new session
+          return of(null);
+        }
+      })
+    ).subscribe();
   }
 
   loadCart(): void {
@@ -70,17 +103,53 @@ export class CartService {
       // Load customer cart
       this.cartApiService.getCartByCustomer(customerId)
         .pipe(
-          catchError(() => of(null))
+          catchError((error) => {
+            console.error('Error loading customer cart:', error);
+            // If customer cart error, usually don't clear session unless specific logic.
+            // But for safety, we set cart to null.
+            return of(null);
+          })
         )
         .subscribe(cart => this._cart.next(cart));
     } else {
-      // Load session cart
-      this.uuidService.getOrCreateSessionId()
-        .pipe(
-          switchMap(sessionId => this.cartApiService.getCartBySession(sessionId)),
-          catchError(() => of(null))
-        )
-        .subscribe(cart => this._cart.next(cart));
+      // Check if we have a session ID
+      this.uuidService.getSessionId().pipe(
+        // If no session ID, just return null (don't create one yet until user interacts?)
+        // User said: "al entrar a la pagina verificar si existe id de carrito... mostrar contador"
+        // If we have an ID stored, we must check it.
+        // If we DONT have an ID stored, we do nothing (cart is empty)?
+        // Current UuidService.getOrCreateSessionId() creates one if missing locally?
+        // Wait, uuidService has getSessionId() (observable of string).
+        // If local storage empty -> checks backend?
+        // If I use getOrCreateSessionId(), it creates one.
+        // I should usage "getSessionId" which might be empty?
+        // uuidService.getOrCreateSessionId() logic:
+        // 1. Check local. If exists -> return.
+        // 2. If not -> call backend generate -> store -> return.
+        // If I call this on init, I create a session for EVERY visitor.
+        // This uses backend resources (UUID generation).
+        // Is this desired?
+        // User said: "mostrar contador y lo necesario para q el usuario recupere los datos"
+        // If stored ID exists, check it.
+        // If NO stored ID, cart is empty. No need to create session yet.
+        // So I need a way to check *existing* session without creating new one.
+        switchMap(sessionId => {
+          if (sessionId) {
+            return this.cartApiService.getCartBySession(sessionId).pipe(
+              catchError(error => {
+                // If 404 or similar, it means expired or invalid.
+                if (error.status === 404 || error.status === 410 || error.status === 400) {
+                  console.warn('Cart expired or invalid. Clearing session.');
+                  this.uuidService.clearSessionId();
+                }
+                return of(null);
+              })
+            );
+          }
+          return of(null);
+        }),
+        catchError(() => of(null))
+      ).subscribe(cart => this._cart.next(cart));
     }
   }
 
@@ -177,65 +246,72 @@ export class CartService {
   }
 
   clearCart(): void {
+    this.getSessionIdentifier()
+      .pipe(
+        switchMap(sessionId => {
+          if (!sessionId) throw new Error('No session ID available');
+          return this.cartApiService.clearCart(sessionId);
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.resetLocalCart();
+          // Reload cart to get empty state from backend (optional, but cleaner if backend returns empty cart structure)
+          // But clearCart returns void. So we just reset local state or fetch again.
+          // Best to just set to empty cart structure?
+          // Or reloadCart makes a call.
+          // If we want to show 'Empty Cart' UI, resetting to null might show loading skeleton?
+          // Use reloadCart() to fetch fresh empty state.
+          this.loadCart();
+          this.toastService.show('Carrito vaciado');
+        },
+        error: (err) => {
+          console.error('Error clearing cart:', err);
+          this.toastService.show('Error al vaciar carrito');
+        }
+      });
+  }
+
+  // Helper to reset local state (used after confirmation)
+  resetLocalCart(): void {
     this._cart.next(null);
   }
 
-  confirmCart(): void {
-    // Check if user is authenticated
+  confirmCart(): Observable<OrderResponse> {
+    const confirm$ = this.cartApiService.confirmCart().pipe(
+      tap(() => {
+        this.toastService.show('Carrito confirmado exitosamente');
+        this.clearCart();
+        this.closeCart();
+      })
+    );
+
     if (!this.authService.isAuthenticated()) {
-      // Open login modal and wait for login
-      this.loginModalService.openModal().subscribe(() => {
-        // After successful login, assign session cart to customer and reload
-        this.assignSessionCartToCustomer();
-      });
-      return;
+      return this.loginModalService.openModal().pipe(
+        switchMap(() => this.assignSessionCartToCustomer()),
+        switchMap(() => confirm$)
+      );
     }
 
-    // User is authenticated, proceed with confirmation
-    this.proceedWithConfirmation();
+    return confirm$;
   }
 
-  private assignSessionCartToCustomer(): void {
+  private assignSessionCartToCustomer(): Observable<Cart> {
     const customerId = this.authService.getCustomerId();
-    if (!customerId) return;
+    if (!customerId) {
+      return throwError(() => new Error('No customer ID found'));
+    }
 
-    this.uuidService.getOrCreateSessionId()
-      .pipe(
-        switchMap(sessionId =>
-          this.cartApiService.assignCartToUser({ sessionId, customerId })
-        ),
-        tap(() => {
-          this.uuidService.clearSessionId();
-          this.loadCart(); // Reload cart with promotions
-        }),
-        switchMap(() => this.cartApiService.getCartByCustomer(customerId))
-      )
-      .subscribe({
-        next: (cart) => {
-          this._cart.next(cart);
-          this.proceedWithConfirmation();
-        },
-        error: (err) => {
-          console.error('Error assigning cart:', err);
-          this.toastService.show('Error al asignar carrito');
-        }
-      });
-  }
-
-  private proceedWithConfirmation(): void {
-    this.cartApiService.confirmCart()
-      .subscribe({
-        next: (message) => {
-          this.toastService.show('Carrito confirmado exitosamente');
-          this.clearCart();
-          this.closeCart();
-          console.log(message);
-        },
-        error: (err) => {
-          console.error('Error confirming cart:', err);
-          this.toastService.show('Error al confirmar carrito');
-        }
-      });
+    return this.uuidService.getOrCreateSessionId().pipe(
+      switchMap(sessionId =>
+        this.cartApiService.assignCartToUser({ sessionId, customerId })
+      ),
+      tap((cart) => {
+        this.uuidService.clearSessionId();
+        this._cart.next(cart); // Update local state directly with returned cart
+        // this.loadCart(); // No need to reload entire cart again if assign returns it
+      })
+    );
   }
 
   private getSessionIdentifier(): Observable<string> {

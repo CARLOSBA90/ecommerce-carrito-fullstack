@@ -9,14 +9,14 @@ import com.ecommerce.carrito.model.Cart;
 import com.ecommerce.carrito.model.CartItem;
 import com.ecommerce.carrito.model.Customer;
 import com.ecommerce.carrito.model.Product;
-import com.ecommerce.carrito.model.enums.CartType;
 import com.ecommerce.carrito.repository.CartItemRepository;
 import com.ecommerce.carrito.repository.CartRepository;
 import com.ecommerce.carrito.repository.CustomerRepository;
-import com.ecommerce.carrito.resolver.CartTypeResolver;
 import com.ecommerce.carrito.service.ICartService;
 import com.ecommerce.carrito.service.IProductService;
-import com.ecommerce.carrito.util.UuidUtil;
+import com.ecommerce.carrito.service.component.CartItemManager;
+import com.ecommerce.carrito.service.component.CartMergeStrategy;
+import com.ecommerce.carrito.service.component.CartResolver;
 import com.ecommerce.carrito.util.ValidationUtil;
 import com.ecommerce.carrito.validator.StockValidator;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,12 @@ public class CartServiceImpl implements ICartService {
 
     // Helper components
     private final CartMapper cartMapper;
-    private final CartTypeResolver cartTypeResolver;
     private final StockValidator stockValidator;
+
+    // Logic Components
+    private final CartResolver cartResolver;
+    private final CartMergeStrategy cartMergeStrategy;
+    private final CartItemManager cartItemManager;
 
     @Override
     public CartResponseDto getCartBySessionId(String sessionId) {
@@ -62,14 +66,18 @@ public class CartServiceImpl implements ICartService {
     @Override
     @Transactional
     public CartResponseDto addItemToCart(AddItemToCartRequestDto request) {
-        Cart cart = getOrCreateCart(request.getSessionId(), request.getCustomerId());
+        Cart cart = cartResolver.getOrCreateCart(request.getSessionId(), request.getCustomerId());
+
+        if (cart.getId() == null) {
+            cart = cartRepository.save(cart);
+        }
 
         Product product = productService.findProductById(request.getProductId());
         int requestedQuantity = request.getQuantity() != null ? request.getQuantity() : 1;
 
         stockValidator.validateStock(product, requestedQuantity);
 
-        CartItem cartItem = findOrCreateCartItem(cart, product);
+        CartItem cartItem = cartItemManager.findOrCreateCartItem(cart, product);
         int newQuantity = cartItem.getQuantity() + requestedQuantity;
 
         stockValidator.validateStock(product, newQuantity);
@@ -97,8 +105,8 @@ public class CartServiceImpl implements ICartService {
 
         cartRepository.findByCustomer_Id(customer.getId())
                 .ifPresentOrElse(
-                        existingCart -> mergeCartsAndDeleteGuest(existingCart, guestCart),
-                        () -> assignGuestCartToCustomer(guestCart, customer));
+                        existingCart -> cartMergeStrategy.mergeCartsAndDeleteGuest(existingCart, guestCart),
+                        () -> cartMergeStrategy.assignGuestCartToCustomer(guestCart, customer));
 
         Cart updatedCart = cartRepository.findByCustomer_Id(customer.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Error al asignar carrito al usuario"));
@@ -108,12 +116,8 @@ public class CartServiceImpl implements ICartService {
 
     @Override
     @Transactional
-    public CartResponseDto removeItemFromCart(String sessionId, Long productId) {
-        ValidationUtil.validateSessionId(sessionId);
-
-        Cart cart = cartRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe un carrito con sessionId: " + sessionId));
+    public CartResponseDto removeItemFromCart(String sessionId, Long customerId, Long productId) {
+        Cart cart = cartResolver.findCart(sessionId, customerId);
 
         CartItem cartItem = cartItemRepository.findByCartAndProduct_Id(cart, productId)
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -128,13 +132,10 @@ public class CartServiceImpl implements ICartService {
 
     @Override
     @Transactional
-    public CartResponseDto updateItemQuantity(String sessionId, Long productId, Integer quantity) {
-        ValidationUtil.validateSessionId(sessionId);
+    public CartResponseDto updateItemQuantity(String sessionId, Long customerId, Long productId, Integer quantity) {
         ValidationUtil.validatePositiveQuantity(quantity);
 
-        Cart cart = cartRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe un carrito con sessionId: " + sessionId));
+        Cart cart = cartResolver.findCart(sessionId, customerId);
 
         CartItem cartItem = cartItemRepository.findByCartAndProduct_Id(cart, productId)
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -149,76 +150,11 @@ public class CartServiceImpl implements ICartService {
         return cartMapper.toResponseDto(savedCart);
     }
 
-    // ==================== PRIVATE HELPER METHODS ====================
-
-    private Cart getOrCreateCart(String sessionId, Long customerId) {
-        if (customerId != null) {
-            return cartRepository.findByCustomer_Id(customerId)
-                    .orElseGet(() -> createCartForCustomer(customerId));
-        }
-
-        if (sessionId != null && !sessionId.isBlank()) {
-            return cartRepository.findBySessionId(sessionId)
-                    .orElseGet(() -> createGuestCart(sessionId));
-        }
-
-        return createGuestCart(generateSessionId());
-    }
-
-    private Cart createGuestCart(String sessionId) {
-        return Cart.builder()
-                .sessionId(sessionId)
-                .type(CartType.GUEST)
-                .build();
-    }
-
-    private Cart createCartForCustomer(Long customerId) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe el cliente con ID: " + customerId));
-
-        CartType cartType = cartTypeResolver.resolveCartType(customer);
-
-        return Cart.builder()
-                .customer(customer)
-                .type(cartType)
-                .build();
-    }
-
-    private String generateSessionId() {
-        return UuidUtil.generateUniqueId(cartRepository::existsBySessionId);
-    }
-
-    private CartItem findOrCreateCartItem(Cart cart, Product product) {
-        return cartItemRepository.findByCartAndProduct_Id(cart, product.getId())
-                .orElseGet(() -> {
-                    CartItem newItem = CartItem.builder()
-                            .cart(cart)
-                            .product(product)
-                            .quantity(0)
-                            .build();
-                    cart.addItem(newItem);
-                    return newItem;
-                });
-    }
-
-    private void assignGuestCartToCustomer(Cart guestCart, Customer customer) {
-        guestCart.setCustomer(customer);
-        guestCart.setSessionId(null);
-        guestCart.setType(cartTypeResolver.resolveCartType(customer));
-        cartRepository.save(guestCart);
-    }
-
-    private void mergeCartsAndDeleteGuest(Cart existingCart, Cart guestCart) {
-        for (CartItem guestItem : guestCart.getItems()) {
-            CartItem existingItem = findOrCreateCartItem(existingCart, guestItem.getProduct());
-            int newQuantity = existingItem.getQuantity() + guestItem.getQuantity();
-            stockValidator.validateStock(guestItem.getProduct(), newQuantity);
-            existingItem.setQuantity(newQuantity);
-            cartItemRepository.save(existingItem);
-        }
-
-        cartRepository.delete(guestCart);
-        cartRepository.save(existingCart);
+    @Override
+    @Transactional
+    public void clearCart(String sessionId, Long customerId) {
+        Cart cart = cartResolver.findCart(sessionId, customerId);
+        cart.getItems().clear();
+        cartRepository.save(cart);
     }
 }

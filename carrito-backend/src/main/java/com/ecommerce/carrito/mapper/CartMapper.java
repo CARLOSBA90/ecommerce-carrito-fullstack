@@ -44,6 +44,7 @@ public class CartMapper {
                 .creationDate(cart.getCreationDate())
                 .totalProductCount(cart.getTotalProductCount())
                 .subtotal(cart.getSubtotal())
+                .totalDiscounts(java.math.BigDecimal.ZERO)
                 .build();
     }
 

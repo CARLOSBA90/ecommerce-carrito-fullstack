@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -22,7 +21,8 @@ public class CartResponseDto {
     private String customerName;
     private List<CartItemDto> items;
     private CartType type;
-    private LocalDate creationDate;
+    private java.time.LocalDateTime creationDate;
     private Integer totalProductCount;
     private BigDecimal subtotal;
+    private BigDecimal totalDiscounts;
 }

@@ -10,4 +10,5 @@ export interface Cart {
     creationDate: string;
     totalProductCount: number;
     subtotal: number;
+    totalDiscounts: number;
 }

@@ -1,0 +1,45 @@
+<div class="modal-backdrop" *ngIf="isOpen" (click)="onAccept()"></div>
+<div class="modal-content" *ngIf="isOpen && order">
+    <div class="modal-header">
+        <h2>¡Compra Exitosa!</h2>
+        <p>Gracias por tu compra.</p>
+    </div>
+
+    <div class="modal-body">
+        <div class="order-details">
+            <div class="detail-row">
+                <span>Número de Orden:</span>
+                <span class="value">#{{ order.id }}</span>
+            </div>
+            <div class="detail-row">
+                <span>Fecha:</span>
+                <span class="value">{{ order.generatedAt | date:'short' }}</span>
+            </div>
+        </div>
+
+        <div class="order-items">
+            <h3>Resumen de Productos</h3>
+            <ul>
+                <li *ngFor="let item of order.items">
+                    <span class="item-name">{{ item.quantity }}x {{ item.productName }}</span>
+                    <span class="item-price">{{ item.finalLinePrice | currency:'USD':'symbol':'1.0-0' }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="order-summary">
+            <div class="summary-line" *ngIf="order.totalDiscount > 0">
+                <span>Descuentos:</span>
+                <span class="discount">-{{ order.totalDiscount | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="summary-line total">
+                <span>Total Pagado:</span>
+                <span class="total-amount">{{ order.totalAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn-primary" (click)="onAccept()">Aceptar y Volver</button>
+    </div>
+</div>
