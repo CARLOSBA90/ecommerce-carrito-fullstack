@@ -36,12 +36,7 @@ El servicio cuenta con scripts de arranque que gestionan automáticamente la iny
 **UNIX / MacOS:**
 ```bash
 ./start-backend.sh
-```
-
-**Windows:**
-```bat
-start-backend.bat
-```
+``` 
 
 **Ejecución Manual (Maven):**
 Alternativamente, puede compilar y ejecutar directamente (requiere variables de entorno cargadas):
@@ -52,6 +47,13 @@ mvn spring-boot:run
 ```
 
 ### 3. Frontend App
+
+**UNIX / MacOS:**
+```bash
+start-frontend.sh
+```
+
+**Ejecución Manual (NodeJS):**
 ```bash
 cd carrito-frontend
 npm install
