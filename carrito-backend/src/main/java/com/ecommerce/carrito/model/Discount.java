@@ -1,5 +1,7 @@
 package com.ecommerce.carrito.model;
 
+import com.ecommerce.carrito.model.enums.CartTypeFilter;
+import com.ecommerce.carrito.model.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -17,7 +19,6 @@ public class Discount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Código único (ej: "DESC_4_PROD", "DESC_VIP_500")
     @Column(unique = true, nullable = false, length = 50)
     private String code;
 
@@ -26,28 +27,26 @@ public class Discount {
 
     private String description;
 
-    // Tipo de descuento: "PERCENTAGE", "FIXED", "FREE_PRODUCT"
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String discountType;
+    private DiscountType discountType;
 
-    // Valor del descuento (25 para 25%, 100 para $100)
     @Column(precision = 10, scale = 2)
     private BigDecimal value;
 
-    // Tipo de carrito al que aplica: "COMMON", "VIP", "SPECIAL_DATE", "ANY"
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String cartTypeApplies;
+    private CartTypeFilter cartTypeApplies;
 
-    // Condición: "EXACT_QTY_4", "MIN_QTY_10", "ALWAYS"
-    @Column(name = "`condition`", length = 30)
-    private String condition;
+    @Column(length = 30)
+    private String conditionType;
 
-    // Activo
+    private Integer conditionValue;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = true;
 
-    // Prioridad (menor = primero)
     @Column(nullable = false)
     @Builder.Default
     private Integer priority = 0;

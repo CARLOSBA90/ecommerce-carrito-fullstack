@@ -59,28 +59,16 @@ public class CartResolver {
                             checkExpiration(cart);
                             return cart;
                         } catch (EntityNotFoundException e) {
-                            // If expired and deleted, create new guest cart with NEW ID?
-                            // User said "extinguir carrito... eliminar registros... incluye ID en frontend"
-                            // If we return a new cart here, frontend might keep old ID?
-                            // But method signature receives sessionId.
-                            // If we create new guest cart, we usually generate new ID.
-                            // But if we return new cart object, frontend receives it.
-                            // For simplicity, we create new cart with NEW ID.
                             return createGuestCart(generateSessionId());
                         }
                     })
-                    .orElseGet(() -> createGuestCart(sessionId)); // If not found, use provided ID? Or generate?
-            // If provided ID is not found, we create new cart with THAT ID.
+                    .orElseGet(() -> createGuestCart(sessionId));
         }
 
         return createGuestCart(generateSessionId());
     }
 
     private void checkExpiration(Cart cart) {
-        // Expiration logic: 24 hours from last update
-        // Applies to both Guest and Customer carts?
-        // User said "ya este o no logeado".
-        // So we apply to all.
         java.time.LocalDateTime expirationTime = cart.getUpdatedAt().plusHours(24);
         if (java.time.LocalDateTime.now().isAfter(expirationTime)) {
             cartRepository.delete(cart);

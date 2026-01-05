@@ -17,4 +17,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.customer.id = :customerId AND o.generatedAt >= :startDate")
     BigDecimal sumTotalAmountByCustomerAndDateAfter(@Param("customerId") Long customerId,
             @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.customer.id = :customerId AND o.generatedAt BETWEEN :startDate AND :endDate")
+    BigDecimal sumTotalAmountByCustomerAndDateBetween(@Param("customerId") Long customerId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    int countByCustomer_IdAndGeneratedAtBetween(Long customerId, LocalDateTime startDate, LocalDateTime endDate);
 }

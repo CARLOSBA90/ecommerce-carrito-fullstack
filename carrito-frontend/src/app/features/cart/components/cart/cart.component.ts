@@ -4,6 +4,7 @@ import { CartService } from '../../services/cart.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CartProduct } from '../../interfaces/cart-product.interface';
+import { AppliedDiscount } from '../../interfaces/cart.interface';
 import { OrderSummaryModalComponent } from '../../components/order-summary-modal/order-summary-modal';
 import { OrderResponse } from '../../interfaces/order-response.interface';
 
@@ -17,8 +18,10 @@ import { OrderResponse } from '../../interfaces/order-response.interface';
 export class CartComponent implements OnInit {
     isOpen$: Observable<boolean>;
     items$: Observable<CartProduct[]>;
-    total$: Observable<number>;
+    subtotal$: Observable<number>;
     totalDiscounts$: Observable<number>;
+    totalAmount$: Observable<number>;
+    appliedDiscounts$: Observable<AppliedDiscount[]>;
 
     // Modal State
     showOrderSummary = false;
@@ -27,9 +30,17 @@ export class CartComponent implements OnInit {
     constructor(private cartService: CartService) {
         this.isOpen$ = this.cartService.isOpen$;
         this.items$ = this.cartService.items$;
-        this.total$ = this.cartService.total$;
+        this.subtotal$ = this.cartService.cart$.pipe(
+            map(cart => cart?.subtotal || 0)
+        );
         this.totalDiscounts$ = this.cartService.cart$.pipe(
             map(cart => cart?.totalDiscounts || 0)
+        );
+        this.totalAmount$ = this.cartService.cart$.pipe(
+            map(cart => cart?.totalAmount !== undefined ? cart.totalAmount : (cart?.subtotal || 0))
+        );
+        this.appliedDiscounts$ = this.cartService.cart$.pipe(
+            map(cart => cart?.appliedDiscounts || [])
         );
     }
 

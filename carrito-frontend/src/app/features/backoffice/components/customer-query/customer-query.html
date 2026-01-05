@@ -1,0 +1,83 @@
+<div class="backoffice-container">
+    <header class="backoffice-header">
+        <div>
+            <h1>Reporte de Clientes</h1>
+            <p>Consulta de cambios de nivel y estado VIP</p>
+        </div>
+        <button class="btn-evaluate" (click)="triggerTierEvaluation()" [disabled]="isEvaluating">
+            {{ isEvaluating ? 'Evaluando...' : '⚡ Evaluar Tiers Ahora' }}
+        </button>
+    </header>
+
+    <div *ngIf="evaluationMessage" class="success-banner">
+        {{ evaluationMessage }}
+    </div>
+
+    <div class="filters-card">
+        <div class="filter-group">
+            <label>Tipo de Reporte</label>
+            <select [(ngModel)]="selectedType">
+                <option *ngFor="let type of reportTypes" [value]="type.value">{{ type.label }}</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Mes</label>
+            <select [(ngModel)]="selectedMonth">
+                <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Año</label>
+            <input type="number" [(ngModel)]="selectedYear" />
+        </div>
+
+        <button class="btn-search" (click)="fetchReport()" [disabled]="isLoading">
+            {{ isLoading ? 'Consultando...' : 'Consultar' }}
+        </button>
+    </div>
+
+    <div *ngIf="error" class="error-banner">
+        {{ error }}
+    </div>
+
+    <div class="results-container">
+        <table class="data-table" *ngIf="items.length > 0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Cambio</th>
+                    <th>Fecha</th>
+                    <th>Gastado (Mes)</th>
+                    <th>Ordenes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of items">
+                    <td>{{ item.customerId }}</td>
+                    <td class="font-medium">{{ item.fullName }}</td>
+                    <td>
+                        <span class="tier-badge" [class.vip]="item.tierTo === 'VIP'">
+                            <ng-container *ngIf="item.tierFrom">{{ item.tierFrom }} &rarr;</ng-container>
+                            {{ item.tierTo }}
+                        </span>
+                    </td>
+                    <td>{{ item.dateOfChange | date:'shortDate' }}</td>
+                    <td>{{ item.totalSpent | currency:'USD' }}</td>
+                    <td>{{ item.totalOrders }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div *ngIf="items.length === 0 && !isLoading && !error" class="empty-state">
+            <p>No se encontraron resultados para los filtros seleccionados.</p>
+        </div>
+    </div>
+</div>
+
+<app-confirmation-modal [isOpen]="showConfirmModal" [title]="'Evaluación de Tiers'" [icon]="'⚠️'"
+    [message]="'Esta acción evaluará TODOS los clientes ¿Deseas continuar?'" [confirmText]="'Evaluar Ahora'"
+    [cancelText]="'Cancelar'" (confirmed)="onConfirmEvaluation()" (cancelled)="onCancelEvaluation()">
+</app-confirmation-modal>

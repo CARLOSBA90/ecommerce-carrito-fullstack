@@ -36,7 +36,6 @@ public class TierService {
 
         log.info("Checking tier update for customer: {}", customer.getId());
 
-        // Calculate total spent in last 30 days
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         BigDecimal totalSpent = orderRepository.sumTotalAmountByCustomerAndDateAfter(customer.getId(), thirtyDaysAgo);
 
@@ -45,20 +44,6 @@ public class TierService {
         if (totalSpent.compareTo(VIP_THRESHOLD) >= 0) {
             upgradeToVip(customer);
         } else {
-            // Logic to downgrade? User only mentioned "actualizar TIER, si hay cambios se
-            // debe agregar registro".
-            // Does downgrade happen automatically?
-            // Usually upgrades are sticky or recalculated periodically.
-            // If they are currently VIP but spent < 10k in last 30 days window (rolling),
-            // maybe they should downgrade?
-            // But if they just bought something, they are MORE likely to be VIP.
-            // If they were COMMON and now > 10k -> Upgrade.
-            // If they were VIP and now < 10k?
-            // Let's implement Upgrade to VIP.
-            // Downgrade logic usually complex (grace period). We'll assume Upgrade only or
-            // Toggle based on 30 day window strict?
-            // If strict: if < 10k and is VIP -> Downgrade.
-            // Let's implement strict check based on "actualizar TIER".
             if (CustomerTier.VIP.equals(customer.getTier())) {
                 checkDowngrade(customer, totalSpent);
             }
@@ -73,7 +58,6 @@ public class TierService {
     }
 
     private void checkDowngrade(Customer customer, BigDecimal totalSpent) {
-        // If total spent < 10k, downgrade to COMMON
         if (totalSpent.compareTo(VIP_THRESHOLD) < 0) {
             log.info("Downgrading customer {} to COMMON (Total spent: {})", customer.getId(), totalSpent);
             updateTier(customer, CustomerTier.VIP, CustomerTier.COMMON);
@@ -89,8 +73,69 @@ public class TierService {
         history.setOldTier(oldTier);
         history.setNewTier(newTier);
         history.setChangeDate(LocalDateTime.now());
-        // history.setChangeReason(...) if field exists
 
         tierHistoryRepository.save(history);
+    }
+
+    public java.util.List<com.ecommerce.carrito.soap.CustomerReportItem> getCustomerReport(
+            com.ecommerce.carrito.soap.ReportType type, int month, int year) {
+
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+
+        java.util.List<com.ecommerce.carrito.soap.CustomerReportItem> report = new java.util.ArrayList<>();
+
+        if (com.ecommerce.carrito.soap.ReportType.CURRENT_VIP.equals(type)) {
+            java.util.List<Customer> vips = customerRepository.findByTier(CustomerTier.VIP);
+            for (Customer c : vips) {
+                report.add(createReportItem(c, null, start, end));
+            }
+        } else {
+            java.util.List<CustomerTierHistory> changes = tierHistoryRepository.findByChangeDateBetween(start, end);
+
+            for (CustomerTierHistory h : changes) {
+                boolean include = false;
+                if (com.ecommerce.carrito.soap.ReportType.ALL_CHANGES.equals(type)) {
+                    include = true;
+                } else if (com.ecommerce.carrito.soap.ReportType.NEW_VIP.equals(type)) {
+                    include = !CustomerTier.VIP.equals(h.getOldTier()) && CustomerTier.VIP.equals(h.getNewTier());
+                } else if (com.ecommerce.carrito.soap.ReportType.LOST_VIP.equals(type)) {
+                    include = CustomerTier.VIP.equals(h.getOldTier()) && !CustomerTier.VIP.equals(h.getNewTier());
+                }
+
+                if (include) {
+                    report.add(createReportItem(h.getCustomer(), h, start, end));
+                }
+            }
+        }
+
+        return report;
+    }
+
+    private com.ecommerce.carrito.soap.CustomerReportItem createReportItem(
+            Customer customer,
+            CustomerTierHistory history,
+            LocalDateTime start,
+            LocalDateTime end) {
+
+        com.ecommerce.carrito.soap.CustomerReportItem item = new com.ecommerce.carrito.soap.CustomerReportItem();
+        item.setCustomerId(customer.getId());
+        item.setFullName(customer.getFullName());
+
+        if (history != null) {
+            item.setTierFrom(history.getOldTier().name());
+            item.setTierTo(history.getNewTier().name());
+            item.setDateOfChange(history.getChangeDate().toString());
+        } else {
+            item.setTierTo(customer.getTier().name());
+        }
+
+        BigDecimal spent = orderRepository.sumTotalAmountByCustomerAndDateBetween(customer.getId(), start, end);
+        int count = orderRepository.countByCustomer_IdAndGeneratedAtBetween(customer.getId(), start, end);
+
+        item.setTotalSpent(spent);
+        item.setTotalOrders(count);
+
+        return item;
     }
 }

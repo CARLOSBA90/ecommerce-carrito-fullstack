@@ -25,4 +25,6 @@ public class CartResponseDto {
     private Integer totalProductCount;
     private BigDecimal subtotal;
     private BigDecimal totalDiscounts;
+    private BigDecimal totalAmount;
+    private List<AppliedDiscountDto> appliedDiscounts;
 }

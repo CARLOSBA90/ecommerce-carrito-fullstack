@@ -42,15 +42,32 @@
         </div>
 
         <footer class="cart-footer" *ngIf="(items$ | async)?.length ?? 0 > 0">
-            <div class="cart-summary-line" *ngIf="(totalDiscounts$ | async) as discount">
+            <!-- Applied Discounts List -->
+            <ng-container *ngIf="(appliedDiscounts$ | async) as discounts">
+                <div class="cart-discounts" *ngIf="discounts.length > 0">
+                    <div class="cart-discounts__header">
+                        <span class="discounts-icon">🎁</span>
+                        <span class="discounts-title">Descuentos Aplicados</span>
+                    </div>
+                    <ul class="cart-discounts__list">
+                        <li *ngFor="let discount of discounts" class="discount-item">
+                            <span class="discount-name">{{ discount.name }}</span>
+                            <span class="discount-amount">-{{ discount.discountAmount | currency:'USD':'symbol':'1.0-0'
+                                }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </ng-container>
+
+            <div class="cart-subtotal" *ngIf="(totalDiscounts$ | async) as discount">
                 <ng-container *ngIf="discount > 0">
-                    <span>Descuentos</span>
-                    <span class="text-green">-{{ discount | currency:'USD':'symbol':'1.0-0' }}</span>
+                    <span>Subtotal</span>
+                    <span>{{ subtotal$ | async | currency:'USD':'symbol':'1.0-0' }}</span>
                 </ng-container>
             </div>
             <div class="cart-total">
                 <span>Total</span>
-                <span class="cart-total__amount">{{ total$ | async | currency:'USD':'symbol':'1.0-0' }}</span>
+                <span class="cart-total__amount">{{ totalAmount$ | async | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
             <div class="cart-actions">
                 <button class="btn-clear" (click)="clearCart()">Vaciar Carrito</button>

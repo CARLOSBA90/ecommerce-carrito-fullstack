@@ -23,23 +23,20 @@ public class PromoDateSeeder implements EntitySeeder {
 
         List<PromoDate> promoDates = new ArrayList<>();
 
-        PromoDate blackFriday = new PromoDate();
-        blackFriday.setDate(LocalDate.of(2026, 11, 27));
-        blackFriday.setDescription("Black Friday 2026");
-        promoDates.add(blackFriday);
-
-        PromoDate cyberMonday = new PromoDate();
-        cyberMonday.setDate(LocalDate.of(2026, 11, 30));
-        cyberMonday.setDescription("Cyber Monday 2026");
-        promoDates.add(cyberMonday);
-
-        PromoDate newYear = new PromoDate();
-        newYear.setDate(LocalDate.of(2027, 1, 1));
-        newYear.setDescription("Año Nuevo 2027");
-        promoDates.add(newYear);
+        promoDates.add(createPromoDate(2026, 1, 4, "TEST PROMO ELECTRONICA"));
+        promoDates.add(createPromoDate(2026, 11, 27, "Black Friday 2026"));
+        promoDates.add(createPromoDate(2026, 11, 30, "Cyber Monday 2026"));
+        promoDates.add(createPromoDate(2027, 1, 1, "Año Nuevo 2027"));
 
         promoDateRepository.saveAll(promoDates);
         log.info("Seeded {} promo dates", promoDateRepository.count());
+    }
+
+    private PromoDate createPromoDate(int year, int month, int day, String description) {
+        PromoDate promo = new PromoDate();
+        promo.setDate(LocalDate.of(year, month, day));
+        promo.setDescription(description);
+        return promo;
     }
 
     @Override

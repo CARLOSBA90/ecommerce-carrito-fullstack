@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface CustomerTierHistoryRepository extends JpaRepository<CustomerTierHistory, Long> {
     List<CustomerTierHistory> findByCustomer_Id(Long customerId);
+
+    List<CustomerTierHistory> findByChangeDateBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

@@ -16,11 +16,13 @@ public class CompositeSeeder implements EntitySeeder {
             UserSeeder userSeeder,
             CustomerSeeder customerSeeder,
             ProductSeeder productSeeder,
-            PromoDateSeeder promoDateSeeder) {
+            PromoDateSeeder promoDateSeeder,
+            DiscountSeeder discountSeeder) {
         seeders.add(userSeeder);
         seeders.add(customerSeeder);
         seeders.add(productSeeder);
         seeders.add(promoDateSeeder);
+        seeders.add(discountSeeder);
     }
 
     @Override

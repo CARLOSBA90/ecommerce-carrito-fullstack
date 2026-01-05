@@ -1,109 +1,78 @@
-# Frontend – Angular
+# Carrito de Compras en Ecommerce
 
-Este proyecto corresponde al frontend del sistema de e-commerce con carrito de compras.
+Módulo robusto de carrito de compras desarrollado con Stack (Java 17 + Angular 20), diseñado para demostrar la implementación de reglas de negocio complejas, descuentos dinámicos y arquitectura limpia.
 
-El frontend fue desarrollado utilizando Angular 20.0.0.
+### Especificaciones del Backend
+- El backend tiene seeds para inicializar correctamente en modo local
+- El carrito se crea y actualiza en backend, se puede realizar un carrito en modo invitado o por sesión
+- Posee Spring Security para confirmación de carrito, el usuario/cliente siempre es requerido
+- Maneja una entidad de descuentos para realizar descuentos de forma dinámica y según condiciones por la cantidad de ítems y/o importe total, también incluye el TIER/Nivel del cliente y/o promo de fechas especiales
+- El proyecto posee un BackOffice sin securizar con consumo SOAP para ver historial de clientes en cuanto a niveles
 
----
+## Arquitectura Tecnológica
 
-## Tecnologías utilizadas
+Stack tecnológico actualizado:
 
-- Angular: 20.0.0
-- Angular CLI: 20.x
-- Node.js: recomendado 20 LTS
-- npm
+| Capa | Tecnología | Versión | Rol |
+|------|------------|---------|-----|
+| **Frontend** | Angular | 20.x | UI Reactiva, Standalone Components |
+| **Backend** | Spring Boot | 3.4.13 | Core de Negocio & API REST |
+| **Database** | MySQL | 8.0 | Persistencia Relacional |
+| **Java** | OpenJDK | 17 | Runtime |
+| **DevOps** | Docker | 24+ | Contenedorización e Infraestructura |
 
----
+## Inicialización y Despliegue
 
-## Requisitos
+La infraestructura se despliega mediante orquestación de contenedores y scripts de automatización.
 
-Antes de ejecutar el proyecto, verificar que estén instaladas las siguientes herramientas:
-
+### 1. Infraestructura de Datos
 ```bash
-node -v
-npm -v
-ng version
+docker compose -f infra.yml up -d
 ```
 
-El comando ng version debe mostrar una versión compatible con Angular 20.0.0.
+### 2. Backend Service
+El servicio cuenta con scripts de arranque que gestionan automáticamente la inyección de variables de entorno desde `.env`.
 
-Si Angular CLI no está instalado o la versión es distinta, instalar la versión correspondiente:
-
+**UNIX / MacOS:**
 ```bash
-npm install -g @angular/cli@20
+./start-backend.sh
 ```
 
----
-
-## Ubicación del frontend
-
-El código del frontend se encuentra en la carpeta:
-
-```text
-ecommerce-carrito-fullstack/
-├── carrito-frontend/
+**Windows:**
+```bat
+start-backend.bat
 ```
 
----
-
-## Ejecución del frontend
-
-El frontend puede ejecutarse de dos maneras: mediante un script .sh o mediante comandos manuales.
-
----
-
-### Opción A – Ejecución mediante script (.sh)
-
-Válido para Linux, macOS y Windows con WSL o Git Bash.
-
-El script debe ejecutarse desde la raíz del proyecto.
-
-Primera ejecución (dar permisos):
-
+**Ejecución Manual (Maven):**
+Alternativamente, puede compilar y ejecutar directamente (requiere variables de entorno cargadas):
 ```bash
-chmod +x start-frontend.sh
+cd carrito-backend
+mvn clean install -DskipTests
+mvn spring-boot:run
 ```
 
-Ejecutar el script:
-
-```bash
-./start-frontend.sh
-```
-
-La aplicación quedará disponible en:
-
-http://localhost:4200
-
----
-
-### Opción B – Ejecución mediante comandos manuales
-
-Recomendado para Windows (CMD o PowerShell) o entornos sin soporte para .sh.
-
-Ingresar a la carpeta del frontend:
-
+### 3. Frontend App
 ```bash
 cd carrito-frontend
-```
-
-Instalar dependencias:
-
-```bash
 npm install
-```
-
-Levantar el servidor de desarrollo:
-
-```bash
 ng serve
 ```
 
-La aplicación quedará disponible en:
+## Servicios y APIs
 
-http://localhost:4200
+El sistema expone interfaces para integración y gestión:
 
----
+- **REST API**: Gestión transaccional y catálogo (`/api`).
+- **Swagger Documentation**: Documentación interactiva disponible en `/swagger-ui.html`.
+- **SOAP Service**: Interfaz legacy para reportes corporativos y auditoría de clientes (`/ws`).
 
-## Notas
+## Testing y Calidad
 
-- Los archivos .sh no se ejecutan de forma nativa en Windows. 
+Cobertura de pruebas automatizadas para lógica crítica:
+```bash
+cd carrito-backend
+mvn test
+```
+ 
+
+--- 
